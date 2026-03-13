@@ -32,7 +32,14 @@ export class ChessGame {
 
   clone() {
     const copy = new Chess();
-    copy.loadPgn(this.chess.pgn());
+    try {
+      copy.loadPgn(this.chess.pgn());
+    } catch {
+      // Fallback: copy by moves
+      this.chess.history({ verbose: true }).forEach(move => {
+        copy.move(move);
+      });
+    }
     return new ChessGame(copy);
   }
 
@@ -62,24 +69,41 @@ export class ChessGame {
 
   load(text) {
     const next = new Chess();
-    let loaded = false;
-
-    try {
-      loaded = next.load(text);
-    } catch {
-      loaded = false;
-    }
-
-    if (!loaded) {
+    
+    // Trim input
+    const cleanText = text.trim();
+    
+    // Try FEN first (FEN contains '/' for rank separators)
+    if (cleanText.includes('/') && !cleanText.includes('[')) {
       try {
-        loaded = next.loadPgn(text);
+        next.load(cleanText);
+        // If we get here without exception, FEN loaded successfully
+        return new ChessGame(next);
       } catch {
-        loaded = false;
+        // FEN parsing failed, try PGN
       }
     }
-
-    if (!loaded) return null;
-    return new ChessGame(next);
+    
+    // Try PGN (contains metadata brackets or move notation)
+    try {
+      next.loadPgn(cleanText);
+      return new ChessGame(next);
+    } catch {
+      // PGN parsing failed
+    }
+    
+    // If text doesn't look like FEN or PGN, try both
+    try {
+      next.load(cleanText);
+      return new ChessGame(next);
+    } catch {
+      try {
+        next.loadPgn(cleanText);
+        return new ChessGame(next);
+      } catch {
+        return null;
+      }
+    }
   }
 
   boardMap() {

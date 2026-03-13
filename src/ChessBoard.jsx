@@ -29,6 +29,9 @@ const ChessBoard = () => {
   const [bestLines, setBestLines] = useState([]);
   const [evaluation, setEvaluation] = useState(null);
   const [stockfishReady, setStockfishReady] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   useEffect(() => {
     engine.init(() => {
@@ -229,68 +232,142 @@ const ChessBoard = () => {
     refreshAnalysis(start.game);
   };
 
+  const goToEnd = () => {
+    const end = controller.syncToIndex(moves, moves.length);
+    setGameState((state) => ({ ...state, ...end, moves: state.moves }));
+    setSelectedSquare(null);
+    setPossibleMoves([]);
+    setMoveEvaluations({});
+    refreshAnalysis(end.game);
+  };
+
   const boardSquares = controller.boardSquares(game);
   const possibleTargets = controller.possibleMoveTargets(possibleMoves);
   const materialInfo = controller.material(game);
   const sanHistory = controller.historyPairs(moves);
   const currentPly = Math.max(0, plyIndex - 1);
 
+  const toolbar = (
+    <Toolbar
+      onNew={() => {
+        resetGame();
+        closeMenu();
+      }}
+      onCopyPgn={copyPgn}
+      onCopyFen={copyFen}
+      onLoad={loadPosition}
+      isGameOver={game.chess.isGameOver()}
+      stockfishReady={stockfishReady}
+      turnText={game.turn() === 'w' ? 'White to move' : 'Black to move'}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-4 xl:flex-row">
-      <div className="w-full xl:w-64">
-        <Toolbar
-          onNew={resetGame}
-          onCopyPgn={copyPgn}
-          onCopyFen={copyFen}
-          onLoad={loadPosition}
-          isGameOver={game.chess.isGameOver()}
-          stockfishReady={stockfishReady}
-          turnText={game.turn() === 'w' ? 'White to move' : 'Black to move'}
-        />
+      {/* Mobile menu trigger (hidden on larger screens) */}
+      <div className="flex items-center justify-between sm:hidden">
+        <span className="text-sm font-semibold text-slate-100">Board Lens</span>
+        <button
+          onClick={() => setMenuOpen(true)}
+          className="rounded-lg bg-slate-800/80 px-3 py-2 text-sm font-semibold text-slate-100 shadow hover:bg-slate-700"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+      </div>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/70 p-4 sm:hidden">
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-slate-900/90 p-4 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-lg font-semibold text-slate-100">Menu</span>
+              <button
+                onClick={closeMenu}
+                className="rounded-lg bg-slate-800/80 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-slate-700"
+                aria-label="Close menu"
+              >
+                ✕
+              </button>
+            </div>
+            {toolbar}
+          </div>
+        </div>
+      )}
+
+      <div className="hidden w-full xl:block xl:w-64">
+        {toolbar}
       </div>
 
       <div className="flex-1">
-        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[auto,300px]">
-          <div className="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-2xl">
-            <div
-              className="grid w-full grid-cols-[auto,1fr] grid-rows-[auto,var(--board-size),auto] justify-items-center gap-x-2 gap-y-4"
-              style={{ '--board-size': 'min(680px, 80vh, calc(100vw - 320px))' }}
-            >
-              <div className="col-start-1 row-start-2 h-[var(--board-size)]">
-                <EvalBar evaluation={evaluation} bestLines={bestLines} />
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[1fr,300px]">
+          <div className="w-full flex flex-col gap-4 rounded-none sm:rounded-2xl border-none sm:border border-white/10 bg-slate-900/70 p-0 sm:p-4 shadow-none sm:shadow-2xl overflow-hidden">
+            <div className="w-full flex flex-col">
+              {/* Mobile: stacked layout */}
+              <div className="sm:hidden w-full flex flex-col">
+                <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                  <BoardGrid
+                    squares={boardSquares}
+                    selectedSquare={selectedSquare}
+                    possibleTargets={possibleTargets}
+                    lastMoveSquares={lastMoveSquares}
+                    moveEvaluations={moveEvaluations}
+                    boardEvaluation={bestLines[0]?.display || evaluation?.display}
+                    onSquareClick={handleSquareClick}
+                    onDragStart={handleDragStart}
+                    onDragEnd={() => {
+                      setSelectedSquare(null);
+                      setPossibleMoves([]);
+                      setMoveEvaluations({});
+                    }}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                  />
+                </div>
+                <div>
+                  <EvalBar evaluation={evaluation} bestLines={bestLines} />
+                </div>
               </div>
-              <div className="col-start-2 row-start-1">
-                <MaterialPanel
-                  title="Black"
-                  captured={materialInfo.capturedByBlack}
-                  materialDiff={materialInfo.materialDiff < 0 ? Math.abs(materialInfo.materialDiff) : 0}
-                />
-              </div>
-              <div className="col-start-2 row-start-2 overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-                <BoardGrid
-                  squares={boardSquares}
-                  selectedSquare={selectedSquare}
-                  possibleTargets={possibleTargets}
-                  lastMoveSquares={lastMoveSquares}
-                  moveEvaluations={moveEvaluations}
-                  boardEvaluation={bestLines[0]?.display || evaluation?.display}
-                  onSquareClick={handleSquareClick}
-                  onDragStart={handleDragStart}
-                  onDragEnd={() => {
-                    setSelectedSquare(null);
-                    setPossibleMoves([]);
-                    setMoveEvaluations({});
-                  }}
-                  onDrop={handleDrop}
-                  onDragOver={(e) => e.preventDefault()}
-                />
-              </div>
-              <div className="col-start-2 row-start-3">
-                <MaterialPanel
-                  title="White"
-                  captured={materialInfo.capturedByWhite}
-                  materialDiff={materialInfo.materialDiff > 0 ? materialInfo.materialDiff : 0}
-                />
+              {/* Desktop: grid layout */}
+              <div
+                className="hidden sm:grid grid-cols-[auto,1fr] grid-rows-[auto,var(--board-size),auto] gap-x-2 gap-y-4 justify-items-center"
+                style={{ '--board-size': 'min(80vh, calc(100vw - 720px))' }}
+              >
+                <div className="col-start-1 row-start-2 h-[var(--board-size)]">
+                  <EvalBar evaluation={evaluation} bestLines={bestLines} />
+                </div>
+                <div className="col-start-2 row-start-1">
+                  <MaterialPanel
+                    title="Black"
+                    captured={materialInfo.capturedByBlack}
+                    materialDiff={materialInfo.materialDiff < 0 ? Math.abs(materialInfo.materialDiff) : 0}
+                  />
+                </div>
+                <div className="col-start-2 row-start-2 overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                  <BoardGrid
+                    squares={boardSquares}
+                    selectedSquare={selectedSquare}
+                    possibleTargets={possibleTargets}
+                    lastMoveSquares={lastMoveSquares}
+                    moveEvaluations={moveEvaluations}
+                    boardEvaluation={bestLines[0]?.display || evaluation?.display}
+                    onSquareClick={handleSquareClick}
+                    onDragStart={handleDragStart}
+                    onDragEnd={() => {
+                      setSelectedSquare(null);
+                      setPossibleMoves([]);
+                      setMoveEvaluations({});
+                    }}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                  />
+                </div>
+                <div className="col-start-2 row-start-3">
+                  <MaterialPanel
+                    title="White"
+                    captured={materialInfo.capturedByWhite}
+                    materialDiff={materialInfo.materialDiff > 0 ? materialInfo.materialDiff : 0}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -302,9 +379,11 @@ const ChessBoard = () => {
               onStart={goToStart}
               onUndo={undoMove}
               onRedo={redoMove}
+              onEnd={goToEnd}
               disableStart={moves.length === 0}
               disableUndo={plyIndex === 0}
               disableRedo={plyIndex >= moves.length}
+              disableEnd={plyIndex >= moves.length}
             />
           </div>
         </div>
