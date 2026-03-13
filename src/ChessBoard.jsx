@@ -1,20 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import BoardGrid from './components/board/BoardGrid';
-import MaterialPanel from './components/panels/MaterialPanel';
-import TopLinesPanel from './components/panels/TopLinesPanel';
-import MoveHistoryPanel from './components/panels/MoveHistoryPanel';
-import EvalBar from './components/panels/EvalBar';
-import Toolbar from './components/controls/Toolbar';
-import NavControls from './components/controls/NavControls';
-import { ChessGame } from './domain/ChessGame';
-import { GameController } from './controllers/GameController';
-import { StockfishEngine } from './services/StockfishEngine';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import BoardGrid from "./components/board/BoardGrid";
+import MaterialPanel from "./components/panels/MaterialPanel";
+import TopLinesPanel from "./components/panels/TopLinesPanel";
+import MoveHistoryPanel from "./components/panels/MoveHistoryPanel";
+import EvalBar from "./components/panels/EvalBar";
+import Toolbar from "./components/controls/Toolbar";
+import NavControls from "./components/controls/NavControls";
+import { ChessGame } from "./domain/ChessGame";
+import { GameController } from "./controllers/GameController";
+import { StockfishEngine } from "./services/StockfishEngine";
 
 const buildSelection = (game, square) => {
   const piece = game.chess.get(square);
   if (!piece) return null;
-  const isWhiteTurn = game.turn() === 'w';
-  const isOwnPiece = (isWhiteTurn && piece.color === 'w') || (!isWhiteTurn && piece.color === 'b');
+  const isWhiteTurn = game.turn() === "w";
+  const isOwnPiece =
+    (isWhiteTurn && piece.color === "w") ||
+    (!isWhiteTurn && piece.color === "b");
   return isOwnPiece ? piece : null;
 };
 
@@ -22,7 +24,9 @@ const ChessBoard = () => {
   const engine = useMemo(() => new StockfishEngine(), []);
   const controller = useMemo(() => new GameController(engine), [engine]);
 
-  const [{ game, moves, plyIndex, lastMoveSquares }, setGameState] = useState(() => controller.initialState());
+  const [{ game, moves, plyIndex, lastMoveSquares }, setGameState] = useState(
+    () => controller.initialState(),
+  );
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [possibleMoves, setPossibleMoves] = useState([]);
   const [moveEvaluations, setMoveEvaluations] = useState({});
@@ -86,7 +90,11 @@ const ChessBoard = () => {
       const chosenMove = controller.findMove(movesFromSelected, square);
 
       if (chosenMove) {
-        const next = controller.applyMove({ game, moves, plyIndex }, selectedSquare, square);
+        const next = controller.applyMove(
+          { game, moves, plyIndex },
+          selectedSquare,
+          square,
+        );
         if (next) {
           setGameState(next);
           setSelectedSquare(null);
@@ -120,7 +128,15 @@ const ChessBoard = () => {
         setMoveEvaluations({});
       }
     },
-    [controller, game, moves, plyIndex, refreshAnalysis, selectedSquare, stockfishReady],
+    [
+      controller,
+      game,
+      moves,
+      plyIndex,
+      refreshAnalysis,
+      selectedSquare,
+      stockfishReady,
+    ],
   );
 
   const handleDragStart = useCallback(
@@ -152,7 +168,11 @@ const ChessBoard = () => {
       const movesFromSelected = game.legalMoves(selectedSquare);
       const chosenMove = controller.findMove(movesFromSelected, targetSquare);
       if (chosenMove) {
-        const next = controller.applyMove({ game, moves, plyIndex }, selectedSquare, targetSquare);
+        const next = controller.applyMove(
+          { game, moves, plyIndex },
+          selectedSquare,
+          targetSquare,
+        );
         if (next) {
           setGameState(next);
           setSelectedSquare(null);
@@ -178,7 +198,7 @@ const ChessBoard = () => {
     try {
       await navigator.clipboard.writeText(game.pgn());
     } catch {
-      alert('Unable to copy PGN to clipboard.');
+      alert("Unable to copy PGN to clipboard.");
     }
   };
 
@@ -186,16 +206,16 @@ const ChessBoard = () => {
     try {
       await navigator.clipboard.writeText(game.fen());
     } catch {
-      alert('Unable to copy FEN to clipboard.');
+      alert("Unable to copy FEN to clipboard.");
     }
   };
 
   const loadPosition = () => {
-    const input = window.prompt('Paste FEN or PGN to load:');
+    const input = window.prompt("Paste FEN or PGN to load:");
     if (!input) return;
     const loaded = controller.loadPosition(input.trim());
     if (!loaded) {
-      alert('Could not load position. Please check the FEN/PGN text.');
+      alert("Could not load position. Please check the FEN/PGN text.");
       return;
     }
     setGameState(loaded);
@@ -258,7 +278,7 @@ const ChessBoard = () => {
       onLoad={loadPosition}
       isGameOver={game.chess.isGameOver()}
       stockfishReady={stockfishReady}
-      turnText={game.turn() === 'w' ? 'White to move' : 'Black to move'}
+      turnText={game.turn() === "w" ? "White to move" : "Black to move"}
     />
   );
 
@@ -294,99 +314,101 @@ const ChessBoard = () => {
         </div>
       )}
 
-      <div className="hidden w-full xl:block xl:w-64">
-        {toolbar}
-      </div>
+      <div className="hidden w-[700px] xl:block">{toolbar}</div>
 
-      <div className="flex-1">
-        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[1fr,300px]">
-          <div className="w-full flex flex-col gap-4 rounded-none sm:rounded-2xl border-none sm:border border-white/10 bg-slate-900/70 p-0 sm:p-4 shadow-none sm:shadow-2xl overflow-hidden">
-            <div className="w-full flex flex-col">
-              {/* Mobile: stacked layout */}
-              <div className="sm:hidden w-full flex flex-col">
-                <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-                  <BoardGrid
-                    squares={boardSquares}
-                    selectedSquare={selectedSquare}
-                    possibleTargets={possibleTargets}
-                    lastMoveSquares={lastMoveSquares}
-                    moveEvaluations={moveEvaluations}
-                    boardEvaluation={bestLines[0]?.display || evaluation?.display}
-                    onSquareClick={handleSquareClick}
-                    onDragStart={handleDragStart}
-                    onDragEnd={() => {
-                      setSelectedSquare(null);
-                      setPossibleMoves([]);
-                      setMoveEvaluations({});
-                    }}
-                    onDrop={handleDrop}
-                    onDragOver={(e) => e.preventDefault()}
-                  />
-                </div>
-                <div>
-                  <EvalBar evaluation={evaluation} bestLines={bestLines} />
-                </div>
+      <div className="flex-1 flex flex-col xl:flex-row gap-6 items-start">
+        <div className="w-full flex-1 flex flex-col gap-4 rounded-none sm:rounded-2xl border-none sm:border border-white/10 bg-slate-900/70 p-0 sm:p-4 shadow-none sm:shadow-2xl overflow-hidden">
+          <div className="w-full flex flex-col">
+            {/* Mobile: stacked layout */}
+            <div className="sm:hidden w-full flex flex-col">
+              <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                <BoardGrid
+                  squares={boardSquares}
+                  selectedSquare={selectedSquare}
+                  possibleTargets={possibleTargets}
+                  lastMoveSquares={lastMoveSquares}
+                  moveEvaluations={moveEvaluations}
+                  boardEvaluation={bestLines[0]?.display || evaluation?.display}
+                  onSquareClick={handleSquareClick}
+                  onDragStart={handleDragStart}
+                  onDragEnd={() => {
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                    setMoveEvaluations({});
+                  }}
+                  onDrop={handleDrop}
+                  onDragOver={(e) => e.preventDefault()}
+                />
               </div>
-              {/* Desktop: grid layout */}
-              <div
-                className="hidden sm:grid grid-cols-[auto,1fr] grid-rows-[auto,var(--board-size),auto] gap-x-2 gap-y-4 justify-items-center"
-                style={{ '--board-size': 'min(80vh, calc(100vw - 720px))' }}
-              >
-                <div className="col-start-1 row-start-2 h-[var(--board-size)]">
-                  <EvalBar evaluation={evaluation} bestLines={bestLines} />
-                </div>
-                <div className="col-start-2 row-start-1">
-                  <MaterialPanel
-                    title="Black"
-                    captured={materialInfo.capturedByBlack}
-                    materialDiff={materialInfo.materialDiff < 0 ? Math.abs(materialInfo.materialDiff) : 0}
-                  />
-                </div>
-                <div className="col-start-2 row-start-2 overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-                  <BoardGrid
-                    squares={boardSquares}
-                    selectedSquare={selectedSquare}
-                    possibleTargets={possibleTargets}
-                    lastMoveSquares={lastMoveSquares}
-                    moveEvaluations={moveEvaluations}
-                    boardEvaluation={bestLines[0]?.display || evaluation?.display}
-                    onSquareClick={handleSquareClick}
-                    onDragStart={handleDragStart}
-                    onDragEnd={() => {
-                      setSelectedSquare(null);
-                      setPossibleMoves([]);
-                      setMoveEvaluations({});
-                    }}
-                    onDrop={handleDrop}
-                    onDragOver={(e) => e.preventDefault()}
-                  />
-                </div>
-                <div className="col-start-2 row-start-3">
-                  <MaterialPanel
-                    title="White"
-                    captured={materialInfo.capturedByWhite}
-                    materialDiff={materialInfo.materialDiff > 0 ? materialInfo.materialDiff : 0}
-                  />
-                </div>
+              <EvalBar evaluation={evaluation} bestLines={bestLines} />
+            </div>
+            {/* Desktop: grid layout */}
+            <div
+              className="hidden sm:grid grid-cols-[auto,1fr] grid-rows-[auto,var(--board-size),auto] gap-x-2 gap-y-4 justify-items-center"
+              style={{ "--board-size": "min(80vh, 70vw)" }}
+            >
+              <div className="col-start-1 row-start-2 h-[var(--board-size)]">
+                <EvalBar evaluation={evaluation} bestLines={bestLines} />
+              </div>
+              <div className="col-start-2 row-start-1">
+                <MaterialPanel
+                  title="Black"
+                  captured={materialInfo.capturedByBlack}
+                  materialDiff={
+                    materialInfo.materialDiff < 0
+                      ? Math.abs(materialInfo.materialDiff)
+                      : 0
+                  }
+                />
+              </div>
+              <div className="col-start-2 row-start-2 overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                <BoardGrid
+                  squares={boardSquares}
+                  selectedSquare={selectedSquare}
+                  possibleTargets={possibleTargets}
+                  lastMoveSquares={lastMoveSquares}
+                  moveEvaluations={moveEvaluations}
+                  boardEvaluation={bestLines[0]?.display || evaluation?.display}
+                  onSquareClick={handleSquareClick}
+                  onDragStart={handleDragStart}
+                  onDragEnd={() => {
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                    setMoveEvaluations({});
+                  }}
+                  onDrop={handleDrop}
+                  onDragOver={(e) => e.preventDefault()}
+                />
+              </div>
+              <div className="col-start-2 row-start-3">
+                <MaterialPanel
+                  title="White"
+                  captured={materialInfo.capturedByWhite}
+                  materialDiff={
+                    materialInfo.materialDiff > 0
+                      ? materialInfo.materialDiff
+                      : 0
+                  }
+                />
               </div>
             </div>
           </div>
-
-          <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-2xl">
-            <TopLinesPanel bestLines={bestLines} />
-            <MoveHistoryPanel pairs={sanHistory} currentPly={currentPly} />
-            <NavControls
-              onStart={goToStart}
-              onUndo={undoMove}
-              onRedo={redoMove}
-              onEnd={goToEnd}
-              disableStart={moves.length === 0}
-              disableUndo={plyIndex === 0}
-              disableRedo={plyIndex >= moves.length}
-              disableEnd={plyIndex >= moves.length}
-            />
-          </div>
         </div>
+
+        <div className="w-full xl:w-[280px] flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-2xl">
+        <TopLinesPanel bestLines={bestLines} />
+        <MoveHistoryPanel pairs={sanHistory} currentPly={currentPly} />
+        <NavControls
+          onStart={goToStart}
+          onUndo={undoMove}
+          onRedo={redoMove}
+          onEnd={goToEnd}
+          disableStart={moves.length === 0}
+          disableUndo={plyIndex === 0}
+          disableRedo={plyIndex >= moves.length}
+          disableEnd={plyIndex >= moves.length}
+        />
+      </div>
       </div>
     </div>
   );
