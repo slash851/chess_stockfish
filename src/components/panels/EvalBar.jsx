@@ -19,12 +19,9 @@ const EvalBar = ({ evaluation, bestLines }) => {
         <div className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[8px] font-semibold text-slate-100">
           {displayValue}
         </div>
-        <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-semibold text-black hidden">
-          {displayValue}
-        </div>
       </div>
       {/* Desktop: vertical bar */}
-      <div className="hidden sm:block relative h-[var(--board-size)] w-8 sm:w-10 overflow-hidden rounded-xl border border-slate-900 bg-slate-950 shadow-xl">
+      <div className="hidden sm:block relative h-[var(--board-size)] w-10 sm:w-14 overflow-visible rounded-xl border border-slate-900 bg-slate-950 shadow-xl">
         <div
           className="absolute left-0 top-0 z-0 w-full bg-black transition-[height] duration-300"
           style={{ height: `${100 - value}%` }}
@@ -33,10 +30,12 @@ const EvalBar = ({ evaluation, bestLines }) => {
           className="absolute bottom-0 left-0 z-10 w-full bg-white transition-[height] duration-300"
           style={{ height: `${value}%` }}
         />
+        {/* White text on top (for black's advantage) */}
         <div className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[11px] font-semibold text-slate-100">
           {displayValue}
         </div>
-        <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[11px] font-semibold text-black">
+        {/* Black text on bottom (for white's advantage) */}
+        <div className=" z-10 pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[11px] font-semibold text-black">
           {displayValue}
         </div>
       </div>

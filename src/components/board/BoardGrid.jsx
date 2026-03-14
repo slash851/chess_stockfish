@@ -28,7 +28,7 @@ const Square = ({
 
   return (
     <div
-      className={`relative flex items-center justify-center text-5xl select-none transition-all duration-200 ${base} ${stateClasses}`}
+      className={`relative flex items-center justify-center text-5xl select-none transition-all duration-200 aspect-square ${base} ${stateClasses}`}
       onClick={onClick}
       onDragOver={onDragOver}
       onDrop={onDrop}
@@ -38,14 +38,13 @@ const Square = ({
 
       {piece && (
         piece.image ? (
-          <div
+          <img
             draggable
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
-            className="z-10 h-full w-full bg-contain bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url('${piece.image.src}')`,
-            }}
+            src={piece.image.src}
+            alt=""
+            className="z-10 h-full w-full object-contain"
           />
         ) : (
           <span
@@ -80,7 +79,6 @@ const BoardGrid = ({
   possibleTargets,
   lastMoveSquares,
   moveEvaluations,
-  boardEvaluation,
   onSquareClick,
   onDragStart,
   onDragEnd,
@@ -92,9 +90,6 @@ const BoardGrid = ({
 
   return (
     <div className="relative grid h-[var(--board-size)] w-[var(--board-size)] grid-cols-8 grid-rows-8 overflow-hidden rounded-xl border border-slate-900 shadow-xl">
-      <div className="pointer-events-none absolute right-2 top-2 z-20 rounded-md bg-slate-900/80 px-2 py-1 text-xs font-semibold text-slate-100 shadow-lg">
-        {boardEvaluation || '...'}
-      </div>
       {ranks.map((rank, rowIdx) =>
         files.map((file, colIdx) => {
           const squareId = `${file}${rank}`;
