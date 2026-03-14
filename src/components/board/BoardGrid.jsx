@@ -37,14 +37,26 @@ const Square = ({
       {showFile && <span className="absolute right-1 bottom-1 text-xs font-semibold text-slate-600">{square.file}</span>}
 
       {piece && (
-        <span
-          draggable
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-          className={`z-10 ${piece.color === 'w' ? 'text-slate-50 drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]' : 'text-slate-900 drop-shadow-[0_3px_5px_rgba(255,255,255,0.25)]'}`}
-        >
-          {piece.symbol}
-        </span>
+        piece.image ? (
+          <div
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            className="z-10 h-full w-full bg-contain bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url('${piece.image.src}')`,
+            }}
+          />
+        ) : (
+          <span
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            className={`z-10 ${piece.color === 'w' ? 'text-slate-50 drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]' : 'text-slate-900 drop-shadow-[0_3px_5px_rgba(255,255,255,0.25)]'}`}
+          >
+            {piece.symbol}
+          </span>
+        )
       )}
 
       {isPossible && evaluation && (

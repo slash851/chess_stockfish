@@ -15,6 +15,24 @@ const PIECE_SYMBOLS = {
   K: '♚',
 };
 
+// Piece image mappings - individual files from /pieces/ folder
+const PIECE_IMAGES = {
+  // White pieces
+  P: { src: '/pieces/P.webp' },
+  N: { src: '/pieces/N.webp' },
+  B: { src: '/pieces/B.webp' },
+  R: { src: '/pieces/R.webp' },
+  Q: { src: '/pieces/Q.webp' },
+  K: { src: '/pieces/K.webp' },
+  // Black pieces
+  p: { src: '/pieces/p.webp' },
+  n: { src: '/pieces/n.webp' },
+  b: { src: '/pieces/b.webp' },
+  r: { src: '/pieces/r.webp' },
+  q: { src: '/pieces/q.webp' },
+  k: { src: '/pieces/k.webp' },
+};
+
 export class ChessGame {
   constructor(chess = new Chess()) {
     this.chess = chess;
@@ -124,6 +142,7 @@ export class ChessGame {
             color: piece.color,
             type: piece.type,
             symbol: PIECE_SYMBOLS[key],
+            image: PIECE_IMAGES[key],
           };
         }
       });
@@ -134,3 +153,4 @@ export class ChessGame {
 }
 
 export const pieceSymbols = PIECE_SYMBOLS;
+export const pieceImages = PIECE_IMAGES;
