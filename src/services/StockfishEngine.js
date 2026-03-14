@@ -14,6 +14,8 @@ export class StockfishEngine {
     this.lastAnalyzedFen = null;
     this.previewQueue = [];
     this.previewIndex = 0;
+    this.thinkingTime = 3000; // Default 3 seconds for analysis
+    this.previewThinkingTime = 1000; // Default 1 second for move previews
     this.handlers = {
       onLineUpdate: null,
       onEvaluationUpdate: null,
@@ -176,12 +178,12 @@ export class StockfishEngine {
 
     this.worker.postMessage('stop');
     this.worker.postMessage(`position fen ${item.fen}`);
-    this.worker.postMessage('go depth 12');
+    this.worker.postMessage(`go movetime ${this.previewThinkingTime}`);
 
     setTimeout(() => {
       this.previewIndex += 1;
       this.runPreviewBatch();
-    }, 1100);
+    }, this.previewThinkingTime + 100);
   }
 
   parsePreviewEval(infoLine, turn) {
@@ -237,5 +239,17 @@ export class StockfishEngine {
     const sanLine = MoveFormatter.pvToPrettySan(this.lastAnalyzedFen, pvMoves);
 
     return { index: idx, display, value: score, san: sanLine };
+  }
+
+  setThinkingTime(ms) {
+    this.thinkingTime = Math.max(100, Math.min(ms, 30000));
+  }
+
+  setPreviewThinkingTime(ms) {
+    this.previewThinkingTime = Math.max(100, Math.min(ms, 5000));
+  }
+
+  getThinkingTime() {
+    return this.thinkingTime;
   }
 }

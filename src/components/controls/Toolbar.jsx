@@ -8,6 +8,8 @@ const Toolbar = ({
   isGameOver,
   stockfishReady,
   turnText,
+  thinkingTime,
+  onThinkingTimeChange,
 }) => (
   <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-[#121218] px-4 py-4 shadow-xl">
     <div className="space-y-2">
@@ -23,6 +25,25 @@ const Toolbar = ({
 
     <div className={`text-sm font-semibold ${stockfishReady ? 'text-emerald-400' : 'text-amber-300'}`}>
       Stockfish: {stockfishReady ? '✓ Ready' : 'Loading...'}
+    </div>
+
+    <div className="space-y-2">
+      <label className="text-xs font-semibold text-slate-300">
+        Move Preview Thinking Time: {(thinkingTime / 1000).toFixed(1)}s
+      </label>
+      <input
+        type="range"
+        min="100"
+        max="30000"
+        step="100"
+        value={thinkingTime}
+        onChange={(e) => onThinkingTimeChange(parseInt(e.target.value, 10))}
+        className="w-full"
+      />
+      <div className="flex justify-between text-xs text-slate-400">
+        <span>0.1s</span>
+        <span>30s</span>
+      </div>
     </div>
 
     <div className="grid grid-cols-1 gap-2">

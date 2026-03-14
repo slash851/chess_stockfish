@@ -34,6 +34,7 @@ const ChessBoard = () => {
   const [evaluation, setEvaluation] = useState(null);
   const [stockfishReady, setStockfishReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [thinkingTime, setThinkingTime] = useState(3000);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
@@ -225,6 +226,12 @@ const ChessBoard = () => {
     refreshAnalysis(loaded.game);
   };
 
+  const handleThinkingTimeChange = (newTime) => {
+    setThinkingTime(newTime);
+    engine.setThinkingTime(newTime);
+    refreshAnalysis(game);
+  };
+
   const undoMove = () => {
     const prev = controller.syncToIndex(moves, plyIndex - 1);
     setGameState((state) => ({ ...state, ...prev, moves: state.moves }));
@@ -279,6 +286,8 @@ const ChessBoard = () => {
       isGameOver={game.chess.isGameOver()}
       stockfishReady={stockfishReady}
       turnText={game.turn() === "w" ? "White to move" : "Black to move"}
+      thinkingTime={thinkingTime}
+      onThinkingTimeChange={handleThinkingTimeChange}
     />
   );
 
