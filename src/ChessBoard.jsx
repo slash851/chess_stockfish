@@ -35,6 +35,7 @@ const ChessBoard = () => {
   const [stockfishReady, setStockfishReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [thinkingTime, setThinkingTime] = useState(3000);
+  const [showAnalysis, setShowAnalysis] = useState(true);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
@@ -273,6 +274,8 @@ const ChessBoard = () => {
   const materialInfo = controller.material(game);
   const sanHistory = controller.historyPairs(moves);
   const currentPly = Math.max(0, plyIndex - 1);
+  const isInCheck = game.in_check();
+  const kingInCheckSquare = isInCheck ? game.kingPosition(game.turn()) : null;
 
   const toolbar = (
     <Toolbar
@@ -338,6 +341,7 @@ const ChessBoard = () => {
                   lastMoveSquares={lastMoveSquares}
                   moveEvaluations={moveEvaluations}
                   boardEvaluation={bestLines[0]?.display || evaluation?.display}
+                  kingInCheckSquare={kingInCheckSquare}
                   onSquareClick={handleSquareClick}
                   onDragStart={handleDragStart}
                   onDragEnd={() => {
@@ -349,7 +353,7 @@ const ChessBoard = () => {
                   onDragOver={(e) => e.preventDefault()}
                 />
               </div>
-              <EvalBar evaluation={evaluation} bestLines={bestLines} />
+              <EvalBar evaluation={showAnalysis ? evaluation : null} bestLines={showAnalysis ? bestLines : []} />
             </div>
             {/* Desktop: grid layout */}
             <div
@@ -357,7 +361,7 @@ const ChessBoard = () => {
               style={{ "--board-size": "min(80vh, 70vw)" }}
             >
               <div className="col-start-1 row-start-2 h-[var(--board-size)]">
-                <EvalBar evaluation={evaluation} bestLines={bestLines} />
+                <EvalBar evaluation={showAnalysis ? evaluation : null} bestLines={showAnalysis ? bestLines : []} />
               </div>
               <div className="col-start-2 row-start-1">
                 <MaterialPanel
@@ -378,6 +382,7 @@ const ChessBoard = () => {
                   lastMoveSquares={lastMoveSquares}
                   moveEvaluations={moveEvaluations}
                   boardEvaluation={bestLines[0]?.display || evaluation?.display}
+                  kingInCheckSquare={kingInCheckSquare}
                   onSquareClick={handleSquareClick}
                   onDragStart={handleDragStart}
                   onDragEnd={() => {
@@ -405,7 +410,18 @@ const ChessBoard = () => {
         </div>
 
         <div className="w-full xl:w-[280px] flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-900/70 p-4 shadow-2xl">
-        <TopLinesPanel bestLines={bestLines} />
+          {/* Analysis Toggle */}
+          <button
+            onClick={() => setShowAnalysis(!showAnalysis)}
+            className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-medium transition hover:bg-slate-700"
+            aria-label={showAnalysis ? 'Hide analysis' : 'Show analysis'}
+          >
+            <span className="text-slate-300">Analysis</span>
+            <span className={`flex h-5 w-8 items-center rounded-full p-0.5 transition-colors ${showAnalysis ? 'bg-emerald-500' : 'bg-slate-600'}`}>
+              <span className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${showAnalysis ? 'translate-x-3' : 'translate-x-0'}`} />
+            </span>
+          </button>
+          {showAnalysis && <TopLinesPanel bestLines={bestLines} />}
         <MoveHistoryPanel pairs={sanHistory} currentPly={currentPly} />
         <NavControls
           onStart={goToStart}

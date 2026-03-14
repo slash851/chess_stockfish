@@ -8,6 +8,7 @@ const Square = ({
   isSelected,
   isPossible,
   isLastMove,
+  isKingInCheck,
   evaluation,
   showRank,
   showFile,
@@ -21,6 +22,7 @@ const Square = ({
   const stateClasses = [
     isSelected && 'ring-4 ring-emerald-300/60',
     isLastMove && 'outline outline-2 outline-emerald-500/80',
+    isKingInCheck && 'shadow-[inset_0_0_30px_8px_rgba(239,68,68,0.7)]',
     isPossible && 'after:absolute after:w-6 after:h-6 after:rounded-full after:bg-black/25 after:shadow-lg',
   ]
     .filter(Boolean)
@@ -79,6 +81,7 @@ const BoardGrid = ({
   possibleTargets,
   lastMoveSquares,
   moveEvaluations,
+  kingInCheckSquare,
   onSquareClick,
   onDragStart,
   onDragEnd,
@@ -98,6 +101,7 @@ const BoardGrid = ({
           const isSelected = selectedSquare === squareId;
           const isPossible = possibleTargets.includes(squareId);
           const isLastMove = lastMoveSquares.includes(squareId);
+          const isKingInCheck = kingInCheckSquare === squareId;
 
           return (
             <Square
@@ -108,6 +112,7 @@ const BoardGrid = ({
               isSelected={isSelected}
               isPossible={isPossible}
               isLastMove={isLastMove}
+              isKingInCheck={isKingInCheck}
               evaluation={moveEvaluations[squareId]}
               showRank={colIdx === 0}
               showFile={rowIdx === 7}

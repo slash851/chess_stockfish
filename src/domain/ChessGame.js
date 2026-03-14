@@ -73,6 +73,21 @@ export class ChessGame {
     return this.chess.turn();
   }
 
+  in_check() {
+    return this.chess.inCheck();
+  }
+
+  kingPosition(color) {
+    const kingSquare = this.chess.board().flat().find(
+      (p) => p && p.type === 'k' && p.color === color
+    );
+    if (!kingSquare) return null;
+    // Convert [col][row] to algebraic notation
+    const file = String.fromCharCode(97 + kingSquare.square % 8);
+    const rank = Math.floor(kingSquare.square / 8) + 1;
+    return `${file}${rank}`;
+  }
+
   move(move) {
     return this.chess.move({ ...move, promotion: move.promotion ?? 'q' });
   }

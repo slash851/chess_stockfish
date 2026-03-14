@@ -35,7 +35,7 @@ const EvalBar = ({ evaluation, bestLines }) => {
           {displayValue}
         </div>
         {/* Black text on bottom (for white's advantage) */}
-        <div className=" z-10 pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[11px] font-semibold text-black">
+          <div className="z-10 pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[11px] font-semibold text-black">
           {displayValue}
         </div>
       </div>
