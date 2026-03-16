@@ -37,6 +37,12 @@ const ChessBoard = () => {
   const [thinkingTime, setThinkingTime] = useState(3000);
   const [showAnalysis, setShowAnalysis] = useState(true);
 
+  useEffect(() => {
+    if (!showAnalysis) {
+      setMoveEvaluations({});
+    }
+  }, [showAnalysis]);
+
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   useEffect(() => {
@@ -68,7 +74,7 @@ const ChessBoard = () => {
         setSelectedSquare(square);
         setPossibleMoves(movesFromSquare);
         setMoveEvaluations({});
-        if (stockfishReady) {
+        if (stockfishReady && showAnalysis) {
           controller.preview(
             game,
             movesFromSquare,
@@ -114,7 +120,7 @@ const ChessBoard = () => {
         setSelectedSquare(square);
         setPossibleMoves(nextMoves);
         setMoveEvaluations({});
-        if (stockfishReady) {
+        if (stockfishReady && showAnalysis) {
           controller.preview(
             game,
             nextMoves,
@@ -137,6 +143,7 @@ const ChessBoard = () => {
       plyIndex,
       refreshAnalysis,
       selectedSquare,
+      showAnalysis,
       stockfishReady,
     ],
   );
@@ -149,7 +156,7 @@ const ChessBoard = () => {
       setSelectedSquare(square);
       setPossibleMoves(movesFromSquare);
       setMoveEvaluations({});
-      if (stockfishReady) {
+      if (stockfishReady && showAnalysis) {
         controller.preview(
           game,
           movesFromSquare,
@@ -160,7 +167,7 @@ const ChessBoard = () => {
         );
       }
     },
-    [controller, game, refreshAnalysis, stockfishReady],
+    [controller, game, refreshAnalysis, showAnalysis, stockfishReady],
   );
 
   const handleDrop = useCallback(
@@ -353,7 +360,7 @@ const ChessBoard = () => {
                   onDragOver={(e) => e.preventDefault()}
                 />
               </div>
-              <EvalBar evaluation={showAnalysis ? evaluation : null} bestLines={showAnalysis ? bestLines : []} />
+              <EvalBar evaluation={evaluation} bestLines={bestLines} />
             </div>
             {/* Desktop: grid layout */}
             <div
@@ -361,7 +368,7 @@ const ChessBoard = () => {
               style={{ "--board-size": "min(80vh, 70vw)" }}
             >
               <div className="col-start-1 row-start-2 h-[var(--board-size)]">
-                <EvalBar evaluation={showAnalysis ? evaluation : null} bestLines={showAnalysis ? bestLines : []} />
+                <EvalBar evaluation={evaluation} bestLines={bestLines} />
               </div>
               <div className="col-start-2 row-start-1">
                 <MaterialPanel
@@ -414,14 +421,14 @@ const ChessBoard = () => {
           <button
             onClick={() => setShowAnalysis(!showAnalysis)}
             className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-medium transition hover:bg-slate-700"
-            aria-label={showAnalysis ? 'Hide analysis' : 'Show analysis'}
+            aria-label={showAnalysis ? 'Disable preview analysis' : 'Enable preview analysis'}
           >
-            <span className="text-slate-300">Analysis</span>
+            <span className="text-slate-300">Preview Analysis</span>
             <span className={`flex h-5 w-8 items-center rounded-full p-0.5 transition-colors ${showAnalysis ? 'bg-emerald-500' : 'bg-slate-600'}`}>
               <span className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${showAnalysis ? 'translate-x-3' : 'translate-x-0'}`} />
             </span>
           </button>
-          {showAnalysis && <TopLinesPanel bestLines={bestLines} />}
+          <TopLinesPanel bestLines={bestLines} />
         <MoveHistoryPanel pairs={sanHistory} currentPly={currentPly} />
         <NavControls
           onStart={goToStart}
